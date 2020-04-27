@@ -4,7 +4,9 @@ This tool can help you to manage the secrets key for a Golang project, keeping i
 
 ## How to use it
 
-`go get github.com/tecnologer/go-secrets`
+`go get -u github.com/tecnologer/go-secrets`
+
+To initialize the bucket, use `go-secrets-cli init`. go-secrets-cli is [here][2]. If you don't want use CLI, you can get the bucket with `secrets.GetBucketByUUID(<uuid.UUID>)` or `secrets.GetBucketByID(<string uuid>)`
 
 Code:
 
@@ -19,12 +21,7 @@ import (
 )
 
 func main() {
-    bucketID, err := uuid.Parse("906e7526-f379-42e3-a6e4-8299488d90b1")
-	if err != nil {
-		log.Fatalf("Invalid bucket id. Error: %v", err)
-    }
-
-	bucket, err := secrets.GetBucket(bucketID)
+	bucket, err := secrets.GetBucket()
 
 	if err != nil {
 		panic(err)
@@ -38,7 +35,7 @@ func main() {
 
 To add new keys you can use [go-secrets-cli][2]:
 
-`go-secrets-cli set -id "906e7526-f379-42e3-a6e4-8299488d90b1" -key pwd -val 123`
+`go-secrets-cli set -id "906e7526-f379-42e3-a6e4-8299488d90b1" -key username -val tecnologer`
 
 ### Dependencies
 
