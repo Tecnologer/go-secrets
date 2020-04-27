@@ -16,7 +16,6 @@ package main
 import (
     "fmt"
 
-    "github.com/google/uuid"
 	"github.com/tecnologer/go-secrets"
 )
 
@@ -33,9 +32,43 @@ func main() {
 }
 ```
 
-To add new keys you can use [go-secrets-cli][2]:
+> For security use [go-secrets-cli][2] to add new keys:
 
-`go-secrets-cli set -id "906e7526-f379-42e3-a6e4-8299488d90b1" -key username -val tecnologer`
+`go-secrets-cli set -key username -val tecnologer`
+
+- Create a group of keys and use it
+
+```golang
+package main
+
+import (
+    "fmt"
+
+	"github.com/tecnologer/go-secrets"
+)
+
+func main() {
+	bucket, err := secrets.GetBucket()
+
+	if err != nil {
+		panic(err)
+	}
+
+	// For security use CLI to add new keys
+	// Create a group for SQL authentication
+    bucket.Set("SQL.Username", "tecno")
+	bucket.Set("SQL.pwd", "123")
+	bucket.Set("SQL.host", "localhost")
+	bucket.Set("SQL.database", "test")
+
+
+	sql, err := bucket.GetGroup("SQL")
+	if err == nil {
+		fmt.Println("SQL connection string:")
+		fmt.Printf("Server=%v;Database=%v;User Id=%v;Password=%v;\n", sql.Get("host"), sql.Get("database"), sql.Get("Username"), sql.Get("pwd"))
+	}
+}
+```
 
 ### Dependencies
 
