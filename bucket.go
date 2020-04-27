@@ -16,11 +16,15 @@ const (
 	secretFile = ".secret"
 	secretsDir = ".go-secrets"
 
-	//LocalSecretFilePath is the path where is the local file that contains the id of the bucket
-	LocalSecretFilePath = "./.secretid"
+	//initSecretFilePath is the path where is the local file that contains the id of the bucket
+	initSecretFilePath = ".secretid"
 )
 
-var secretFilePath string
+var (
+	secretFilePath      string
+	currentPath         string
+	localSecretFilePath string
+)
 
 //Bucket struct for collection of secrets
 type Bucket struct {
@@ -28,14 +32,24 @@ type Bucket struct {
 	Secrets Secret
 }
 
+func init() {
+	currentPath, _ = os.Getwd()
+
+	if currentPath == "" {
+		currentPath = "."
+	}
+	localSecretFilePath = fmt.Sprintf("%s/%s", currentPath, initSecretFilePath)
+	fmt.Println(localSecretFilePath)
+}
+
 //GetBucket creates or return the bucket with the specific UUID in the local secret file
 func GetBucket() (*Bucket, error) {
-	if !secretExists(LocalSecretFilePath) {
+	if !secretExists(localSecretFilePath) {
 		return nil, fmt.Errorf("Cannot get the bucket, the secret file is not initialized, use \"go-secrets-cli init\" to create it")
 	}
 
 	var secretContent []byte
-	secretContent, err := ioutil.ReadFile(LocalSecretFilePath)
+	secretContent, err := ioutil.ReadFile(localSecretFilePath)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "Cannot get the bucket, the secret file is corrupted, use \"go-secrets-cli init\" to repair it")
