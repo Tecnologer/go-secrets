@@ -1,6 +1,9 @@
 package secrets
 
-import "regexp"
+import (
+	"fmt"
+	"regexp"
+)
 
 //Secret type for secrets bucket
 type Secret map[string]interface{}
@@ -33,7 +36,7 @@ func (s Secret) Remove(key string) {
 //
 //  - "<group>:<key>", I.e.: "SQL:User"
 func (s Secret) GetGroup(group string) (Secret, error) {
-	regGroup, err := regexp.Compile(group + ":")
+	regGroup, err := regexp.Compile(fmt.Sprintf(`(?m)^%s\.`, group))
 	if err != nil {
 		return nil, err
 	}
