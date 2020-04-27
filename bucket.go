@@ -8,12 +8,16 @@ import (
 	"os/user"
 
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 )
 
-//name of the secret file, where all secrets key are in
 const (
+	//name of the secret file, where all secrets key are in
 	secretFile = ".secret"
 	secretsDir = ".go-secrets"
+
+	//LocalSecretFilePath is the path where is the local file that contains the id of the bucket
+	LocalSecretFilePath = "./.secretid"
 )
 
 var secretFilePath string
@@ -24,8 +28,34 @@ type Bucket struct {
 	Secrets Secret
 }
 
-//GetBucket creates or return the bucket with the specific ID
-func GetBucket(id uuid.UUID) (*Bucket, error) {
+//GetBucket creates or return the bucket with the specific UUID in the local secret file
+func GetBucket() (*Bucket, error) {
+	if !secretExists(LocalSecretFilePath) {
+		return nil, fmt.Errorf("Cannot get the bucket, the secret file is not initialized, use \"go-secrets-cli init\" to create it")
+	}
+
+	var secretContent []byte
+	secretContent, err := ioutil.ReadFile(LocalSecretFilePath)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "Cannot get the bucket, the secret file is corrupted, use \"go-secrets-cli init\" to repair it")
+	}
+
+	return GetBucketByID(string(secretContent))
+}
+
+//GetBucketByID creates or return the bucket with the specific UUID as string
+func GetBucketByID(id string) (*Bucket, error) {
+	bucketID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, errors.Wrap(err, "Cannot get the bucket, the secret file is corrupted, use \"go-secrets-cli init\" to repair it")
+	}
+
+	return GetBucketByUUID(bucketID)
+}
+
+//GetBucketByUUID creates or return the bucket with the specific UUID
+func GetBucketByUUID(id uuid.UUID) (*Bucket, error) {
 	data, err := readData(id)
 	if err != nil {
 		return nil, err
