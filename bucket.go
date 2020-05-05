@@ -24,6 +24,7 @@ var (
 	secretFilePath      string
 	currentPath         string
 	localSecretFilePath string
+	bucketID            uuid.UUID
 )
 
 //Bucket struct for collection of secrets
@@ -93,11 +94,17 @@ func readData(id uuid.UUID) (Secret, error) {
 		//if the secret file doesn't exists
 		if !secretExists(secretFilePath) {
 			newSecret := NewSecret()
-			writeSecrets(newSecret)
+			writeSecrets(id, newSecret)
 			return newSecret, nil
 		}
 	}
-	file, err := ioutil.ReadFile(secretFilePath)
+
+	var file []byte
+	if bucketConfig.EncryptionEnabled {
+		file, err = getDecryptedData(id, secretFilePath)
+	} else {
+		file, err = ioutil.ReadFile(secretFilePath)
+	}
 
 	if err != nil {
 		return nil, err
@@ -146,10 +153,17 @@ func secretExists(filename string) bool {
 	return !info.IsDir()
 }
 
-func writeSecrets(secret Secret) error {
+func writeSecrets(bucketID uuid.UUID, secret Secret) error {
 	json, err := json.MarshalIndent(secret, "", "")
 	if err != nil {
-		return err
+		return errors.Wrap(err, "error parsing secret struct to json")
+	}
+
+	if bucketConfig.EncryptionEnabled {
+		json, err = encriptData(bucketID, json)
+		if err != nil {
+			return errors.Wrap(err, "error encrypting json")
+		}
 	}
 
 	return ioutil.WriteFile(secretFilePath, json, 0644)
@@ -160,7 +174,7 @@ func writeSecrets(secret Secret) error {
 //Set adds or updates the value for the specific key
 func (b *Bucket) Set(key string, value interface{}) {
 	b.Secrets.Set(key, value)
-	writeSecrets(b.Secrets)
+	writeSecrets(b.ID, b.Secrets)
 }
 
 //Get returns the value for the specific key
@@ -171,7 +185,7 @@ func (b *Bucket) Get(key string) interface{} {
 //Remove removes the key
 func (b *Bucket) Remove(key string) {
 	b.Secrets.Remove(key)
-	writeSecrets(b.Secrets)
+	writeSecrets(b.ID, b.Secrets)
 }
 
 //GetGroup gets the key with the same group
