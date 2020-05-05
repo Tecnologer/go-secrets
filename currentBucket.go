@@ -1,18 +1,11 @@
 package secrets
 
 import (
-	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
-	"github.com/tecnologer/go-secrets/config"
 )
 
 //CurrentBucket is the instance of the bucket for the secrets in the current instance
-var (
-	CurrentBucket *Bucket
-	bucketConfig  *config.Config
-
-	uuidEmpty = uuid.UUID{}
-)
+var CurrentBucket *Bucket
 
 //Init secrets bucket for this project using the ID from .secretid
 //
@@ -20,25 +13,6 @@ var (
 func Init() {
 	_, err := Get()
 	log.WithError(err).Warningf("error initializing the secret bucket")
-}
-
-//InitWithConfig inits secrets bucket for this project using the configuration
-//
-//** Don't forget initialize with => go-secret-cli init
-func InitWithConfig(conf *config.Config) {
-	bucketConfig = conf
-	var err error
-
-	//initialize the bucket with specific ID
-	if conf.BucketID != uuidEmpty && (CurrentBucket == nil || CurrentBucket.ID != conf.BucketID) {
-		CurrentBucket, err = GetBucketByUUID(conf.BucketID)
-		log.WithError(err).Warningf("error initializing the secret bucket")
-		if err != nil {
-			return
-		}
-	} else {
-		Init()
-	}
 }
 
 //Get returns the current bucket
