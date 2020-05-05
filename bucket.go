@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -107,7 +108,8 @@ func readData(id uuid.UUID) (Secret, error) {
 	}
 
 	if err != nil {
-		return nil, err
+		logrus.WithError(err).Warning("error getting data from secret bucket file")
+		file = []byte{}
 	}
 
 	data := new(Secret)
