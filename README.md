@@ -20,13 +20,9 @@ import (
 )
 
 func main() {
-	bucket, err := secrets.GetBucket()
+	secrets.Init()
 
-	if err != nil {
-		panic(err)
-    }
-
-    username := bucket.Get("username")
+    username := secrets.Get("username")
 
 	fmt.Printf("Secret username: %s", username)
 }
@@ -48,21 +44,17 @@ import (
 )
 
 func main() {
-	bucket, err := secrets.GetBucket()
-
-	if err != nil {
-		panic(err)
-	}
+	secrets.Init()
 
 	// For security use CLI to add new keys
 	// Create a group for SQL authentication
-    bucket.Set("SQL.Username", "tecno")
-	bucket.Set("SQL.pwd", "123")
-	bucket.Set("SQL.host", "localhost")
-	bucket.Set("SQL.database", "test")
+    secrets.Set("SQL.Username", "tecno")
+	secrets.Set("SQL.pwd", "123")
+	secrets.Set("SQL.host", "localhost")
+	secrets.Set("SQL.database", "test")
 
 
-	sql, err := bucket.GetGroup("SQL")
+	sql, err := secrets.GetGroup("SQL")
 	if err == nil {
 		fmt.Println("SQL connection string:")
 		fmt.Printf("Server=%v;Database=%v;User Id=%v;Password=%v;\n", sql.Get("host"), sql.Get("database"), sql.Get("Username"), sql.Get("pwd"))
