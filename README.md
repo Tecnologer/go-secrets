@@ -48,7 +48,7 @@ func main() {
 
 	// For security use CLI to add new keys
 	// Create a group for SQL authentication
-    secrets.Set("SQL.Username", "tecno")
+	secrets.Set("SQL.Username", "tecno")
 	secrets.Set("SQL.pwd", "123")
 	secrets.Set("SQL.host", "localhost")
 	secrets.Set("SQL.database", "test")
