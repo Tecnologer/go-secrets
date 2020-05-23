@@ -4,16 +4,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"github.com/tecnologer/go-secrets/config"
 )
 
 //CurrentBucket is the instance of the bucket for the secrets in the current instance
-var (
-	CurrentBucket *Bucket
-	bucketConfig  *config.Config
-
-	uuidEmpty = uuid.UUID{}
-)
+var CurrentBucket *Bucket
 
 //Init secrets bucket for this project using the ID from .secretid
 //
