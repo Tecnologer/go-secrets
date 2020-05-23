@@ -2,6 +2,7 @@ package secrets
 
 import (
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/tecnologer/go-secrets/config"
 )
@@ -19,7 +20,9 @@ var (
 //** Don't forget initialize with => go-secret-cli init
 func Init() {
 	_, err := Get()
-	log.WithError(err).Warningf("error initializing the secret bucket")
+	if err != nil {
+		log.WithError(err).Warningf("Init: error initializing the secret bucket")
+	}
 }
 
 //InitWithConfig inits secrets bucket for this project using the configuration
@@ -27,25 +30,36 @@ func Init() {
 //** Don't forget initialize with => go-secret-cli init
 func InitWithConfig(conf *config.Config) {
 	bucketConfig = conf
-	var err error
+	_, err := GetWithConfig(bucketConfig)
+	if err != nil {
+		log.WithError(err).Warningf("InitWithConfig: error initializing the secret bucket")
+	}
+}
 
-	//initialize the bucket with specific ID
+//GetWithConfig bucket secret using the configuration
+//
+//** Don't forget initialize with => go-secret-cli init
+func GetWithConfig(conf *config.Config) (*Bucket, error) {
+	bucketConfig = conf
+	var err error
 	if conf.BucketID != uuidEmpty && (CurrentBucket == nil || CurrentBucket.ID != conf.BucketID) {
 		CurrentBucket, err = GetBucketByUUID(conf.BucketID)
-		log.WithError(err).Warningf("error initializing the secret bucket")
-		if err != nil {
-			return
-		}
 	} else {
-		Init()
+		CurrentBucket, err = GetBucket()
 	}
+
+	if err != nil {
+		return nil, errors.Wrap(err, "GetWithConfig: error getting the secret bucket")
+	}
+
+	return CurrentBucket, nil
 }
 
 //Get returns the current bucket
 func Get() (*Bucket, error) {
 	var err error
 	if CurrentBucket == nil {
-		CurrentBucket, err = GetBucket()
+		CurrentBucket, err = GetWithConfig(bucketConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -59,7 +73,7 @@ func GetKey(key string) interface{} {
 	b, err := Get()
 
 	if err != nil {
-		log.WithError(err).Warningf("error getting the key \"%s\"", key)
+		log.WithError(err).Warningf("GetKey: error getting the key \"%s\"", key)
 		return nil
 	}
 
@@ -71,7 +85,7 @@ func GetGroup(group string) (Secret, error) {
 	b, err := Get()
 
 	if err != nil {
-		log.WithError(err).Warningf("error getting the group \"%s\". Err: %q", group)
+		log.WithError(err).Warningf("GetGroup: error getting the group \"%s\". Err: %q", group)
 		return nil, err
 	}
 
@@ -83,7 +97,7 @@ func Set(key string, val interface{}) {
 	b, err := Get()
 
 	if err != nil {
-		log.WithError(err).Warningf("error when try set the key \"%s\". Err: %q", key)
+		log.WithError(err).Warningf("Set: error when try set the key \"%s\". Err: %q", key)
 		return
 	}
 
@@ -95,7 +109,7 @@ func Remove(key string, val interface{}) {
 	b, err := Get()
 
 	if err != nil {
-		log.WithError(err).Warningf("error when try remove the key \"%s\". Err: %q", key)
+		log.WithError(err).Warningf("Remove: error when try remove the key \"%s\". Err: %q", key)
 		return
 	}
 
