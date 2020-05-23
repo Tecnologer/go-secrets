@@ -101,7 +101,6 @@ func readData(id uuid.UUID) (Secret, error) {
 	}
 
 	var file []byte
-	logrus.WithField("Config", bucketConfig).Info("read data")
 	if bucketConfig.EncryptionEnabled {
 		file, err = getDecryptedData(id, secretFilePath)
 	} else {
