@@ -74,7 +74,7 @@ func GetBucketByID(id string) (*Bucket, error) {
 func GetBucketByUUID(id uuid.UUID) (*Bucket, error) {
 	data, err := readData(id)
 	if err != nil {
-		return nil, err
+		logrus.WithError(err).Warning("GetBucketByUUID: error reading stored data")
 	}
 
 	return &Bucket{
@@ -88,7 +88,7 @@ func readData(id uuid.UUID) (Secret, error) {
 	if secretFilePath == "" {
 		secretFilePath, err = getSecretPath(id)
 		if err != nil {
-			return nil, err
+			return NewSecret(), errors.Wrap(err, "readData: error getting secret path")
 		}
 
 		// fmt.Println(secretFilePath)
@@ -101,6 +101,7 @@ func readData(id uuid.UUID) (Secret, error) {
 	}
 
 	var file []byte
+	logrus.WithField("Config", bucketConfig).Info("read data")
 	if bucketConfig.EncryptionEnabled {
 		file, err = getDecryptedData(id, secretFilePath)
 	} else {
@@ -112,14 +113,14 @@ func readData(id uuid.UUID) (Secret, error) {
 		file = []byte{}
 	}
 
-	data := new(Secret)
+	data := NewSecret()
 	err = json.Unmarshal([]byte(file), &data)
 
 	if err != nil {
-		return nil, err
+		return data, errors.Wrap(err, "readata: error parsing file content to json")
 	}
 
-	return *data, nil
+	return data, nil
 }
 
 func getSecretPath(id uuid.UUID) (string, error) {
