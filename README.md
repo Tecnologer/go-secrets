@@ -44,7 +44,7 @@ import (
 )
 
 func main() {
-	secrets.Init()
+	secrets.InitWithConfig(&config.Config{EncryptionEnabled: false})
 
 	// For security use CLI to add new keys
 	// Create a group for SQL authentication
@@ -53,12 +53,26 @@ func main() {
 	secrets.Set("SQL.host", "localhost")
 	secrets.Set("SQL.database", "test")
 
-
-	sql, err := secrets.GetGroup("SQL")
+	sql, err := testdeep.GetGroup("SQL")
 	if err == nil {
-		fmt.Println("SQL connection string:")
+		fmt.Println("SQL keys:")
 		fmt.Printf("Server=%v;Database=%v;User Id=%v;Password=%v;\n", sql.Get("host"), sql.Get("database"), sql.Get("Username"), sql.Get("pwd"))
 	}
+
+	fmt.Println("All keys:")
+	bucket, err := secrets.Get()
+	if err != nil {
+		panic(err)
+	}
+
+	for key, val := range bucket.Secrets {
+		fmt.Printf("%s: %v\n", key, val)
+	}
+
+	key := "SQL.pwd"
+	fmt.Printf("Get key in other package. {%s: %v}\n", key, testdeep.GetKey(key))
+
+	fmt.Println(bucket.ID)
 }
 ```
 
