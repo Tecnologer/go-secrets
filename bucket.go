@@ -45,6 +45,7 @@ func init() {
 
 //GetBucket creates or return the bucket with the specific UUID in the local secret file
 func GetBucket() (*Bucket, error) {
+	logrus.Debug(localSecretFilePath)
 	if !secretExists(localSecretFilePath) {
 		return nil, fmt.Errorf("Cannot get the bucket, the secret file is not initialized, use \"go-secrets-cli init\" to create it")
 	}

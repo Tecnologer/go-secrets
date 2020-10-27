@@ -1,6 +1,8 @@
 package secrets
 
 import (
+	"fmt"
+
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -19,6 +21,7 @@ var (
 //
 //** Don't forget initialize with => go-secret-cli init
 func Init() {
+	bucketConfig = &config.Config{}
 	_, err := Get()
 	if err != nil {
 		log.WithError(err).Warningf("Init: error initializing the secret bucket")
@@ -40,6 +43,10 @@ func InitWithConfig(conf *config.Config) {
 //
 //** Don't forget initialize with => go-secret-cli init
 func GetWithConfig(conf *config.Config) (*Bucket, error) {
+	if conf == nil {
+		conf = &config.Config{}
+	}
+
 	bucketConfig = conf
 	var err error
 	if conf.BucketID != uuidEmpty && (CurrentBucket == nil || CurrentBucket.ID != conf.BucketID) {
@@ -78,6 +85,26 @@ func GetKey(key string) interface{} {
 	}
 
 	return b.Get(key)
+}
+
+//GetKeyString returns the value of the key as string
+func GetKeyString(key string) string {
+	value := GetKey(key)
+	if value == nil {
+		return ""
+	}
+
+	return fmt.Sprintf("%v", value)
+}
+
+//GetKeyInt returns the value of the key as int
+func GetKeyInt(key string) int {
+	value := GetKey(key)
+	if value == nil {
+		return 0
+	}
+
+	return value.(int)
 }
 
 //GetGroup returns the group in the current bucket

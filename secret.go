@@ -27,6 +27,24 @@ func (s Secret) Get(key string) interface{} {
 	return nil
 }
 
+//GetString returns the value as string for the specific key
+func (s Secret) GetString(key string) string {
+	if val, exists := s[key]; exists {
+		return fmt.Sprintf("%v", val)
+	}
+
+	return ""
+}
+
+//GetInt returns the value as int for the specific key
+func (s Secret) GetInt(key string) int {
+	if val, exists := s[key]; exists {
+		return val.(int)
+	}
+
+	return 0
+}
+
 //Remove removes the key
 func (s Secret) Remove(key string) {
 	delete(s, key)
